@@ -29,10 +29,18 @@ lib_B_index <- grep("LibB", sequences$UID)
 lib_B_sequences <- sequences[lib_B_index, ]
 
 nrow(lib_B_sequences)
+
+# Removing Non-gene sgRNAs
+
+controls <- grep("NonTargeting", lib_B_sequences$Gene)
+
+clean_sequences <- lib_B_sequences[-controls, ]
+
+nrow(clean_sequences)
   
 # Merging Data
 
-gecko <- merge(gecko, lib_B_sequences, c("UID", "Gene"))
+gecko <- merge(gecko, clean_sequences, c("UID", "Gene"))
 
 nrow(gecko)
 
@@ -131,7 +139,7 @@ set.seed(2026)
 genes <- unique(gecko_model$Gene)
 
 
-train_genes <- sample(genes, floor(0.8 * length(genes)))
+train_genes <- sample(genes, floor(0.9 * length(genes)))
 test_genes <- setdiff(genes, train_genes)
 
 train_index <- which(gecko_model$Gene %in% train_genes)
@@ -151,18 +159,32 @@ dtest <- xgb.DMatrix(
 
 
 # XGBoost -----------------------------------------------------------------
+# nrounds:
+# params:
+### objective
+### nthreads
+### max_depth
+### eta/learning rate
+###
 
 model <- xgb.train(
   data = dtrain,
   nrounds = 1000,
   params = xgb.params(
-    objective = "reg:squarederror",
-    nthread = 1,
-    max_depth = 4,
-    eta = 0.02,
+    eta = 0.04,
+    gamma = 0,
+    max_depth = 6,
     min_child_weight = 10,
-    subsample = 0.7,
-    colsample_bytree = 0.8
+    max_delta_step = 0,
+    sampling_method = "uniform",
+    objective = "reg:squarederror",
+    subsample = 0.8,
+    colsample_bytree = 0.5,
+    colsample_bylevel = 0.5,
+    colsample_bynode = 0.5,
+    lambda = 1,
+    alpha = 0,
+    tree_method = "auto"
   )
 )
 
@@ -171,8 +193,15 @@ model <- xgb.train(
 pred_train <- predict(model, dtrain)
 pred_test <- predict(model, dtest)
 
+plot(y[train_index], pred_train, main = "Predicted vs. Observed",
+     xlab = "Observed", ylab = "Predicted") + abline(1,1, col = "red")
+
+plot(y[test_index], pred_test, main = "Predicted vs. Observed",
+     xlab = "Observed", ylab = "Predicted") + abline(1,1, col = "red")
 
 cor(y[train_index], pred_train, method = "spearman")
 cor(y[test_index], pred_test, method = "spearman")
 
 #xgb.importance(model)
+
+
