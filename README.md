@@ -36,17 +36,17 @@ eta or learning rate sets the step size shrinkage used in update to prevent over
 
 Reported for each tested value is the cross-validation RMSE and Mean Absolute Error (MAE).
 
-|         |            |             |           |
-|---------|------------|-------------|-----------|
-| **eta** | **rounds** | **cvRMSE**  | **cvMAE** |
-| 0.01    | 403        | 0.4782638   | 0.3282582 |
-| 0.05    | 102        | 0.4781006   | 0.3284748 |
-| 0.10    | 59         | 0.4782608   | 0.3289320 |
-| 0.15    | 36         | 0.4786662   | 0.3288769 |
-| 0.30    | 12         | 0.4798945   | 0.3301756 |
-| 0.40    | 7          | 0.4809617   | 0.3306126 |
-| 0.50    | 5          | 0.4814286   | 0.3308764 |
-| 0.60    | 4          | 0.4815781   | 0.3310022 |
+|         |            |            |           |
+|---------|------------|------------|-----------|
+| **eta** | **rounds** | **cvRMSE** | **cvMAE** |
+| 0.01    | 403        | 0.4782638  | 0.3282582 |
+| 0.05    | 102        | 0.4781006  | 0.3284748 |
+| 0.10    | 59         | 0.4782608  | 0.3289320 |
+| 0.15    | 36         | 0.4786662  | 0.3288769 |
+| 0.30    | 12         | 0.4798945  | 0.3301756 |
+| 0.40    | 7          | 0.4809617  | 0.3306126 |
+| 0.50    | 5          | 0.4814286  | 0.3308764 |
+| 0.60    | 4          | 0.4815781  | 0.3310022 |
 
 Out of the tested values, eta = 0.05 produced the lowest CV RMSE and was used for subsequent optimizations.
 
@@ -152,13 +152,17 @@ The optimization procedure can be found in: "R/04_model_optimization.R"
 
 The final XGBoost model was trained on the complete training dataset using the selected hyperparameters and 192 boosting rounds. The held-out test dataset was then used to obtain an independent evaluation of model performance.
 
-|  |  |  |  |  |  |  |
-|--------|----------|----------|----------|---------|--------------|--------------|
-| **rounds** | **trainRMSE** | **testRMSE** | **trainMAE** | **testMAE** | **trainSpearman** | **testSpearman** |
-| 192 | 0.4633858 | 0.483437 | 0.318533 | 0.330785 | 0.3373936 | 0.2719628 |
+|  |  |  |  |  |  |  |  |  |
+|----------|----------|----------|----------|----------|-----------|--|----------|----------|
+| **rounds** | **trainRMSE** | **testRMSE** | **trainMAE** | **testMAE** | **trainR2** | **testR2** | **trainSpearman** | **testSpearman** |
+| 192 | 0.4633858 | 0.483437 | 0.318533 | 0.330785 | 0.1225377 | 0.07295608 | 0.3373936 | 0.2719628 |
 
-The test-set RMSE was 0.483 compared with the training-set RMSE of 0.463, and the corresponding MAE values were 0.331 and 0.319 for the test- and training-sets. Furthermore a Spearman correlation between observed and predicted log2 fold changes was 0.272 for the test-set and 0.337 for the training-set.
+The test-set RMSE was 0.483 compared with the training-set RMSE of 0.463, and the corresponding MAE values were 0.331 and 0.319 for the test- and training-sets. Furthermore a Spearman correlation between observed and predicted log2 fold changes was 0.272 for the test-set and 0.337 for the training-set. The computed R-squared for the final model was 0.07 for the test-data, whereas the R-squared for the training-data was 0.12.
 
 The model showed positive association between predicted and observed sgRNA efficacy, while prediction errors for the test data were higher than those for the training data.
 
 The final model evaluation can be found in: "R/05_final_model.R"
+
+## SHAP
+
+SHaplet Additive exPlanation was used to investigate how sequence features contributed to the predictions of the final model. SHAP analysis was performed on the final model after hyperparameter optimization.

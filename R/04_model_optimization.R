@@ -199,8 +199,9 @@ final_params <- list(objective = "reg:squarederror",
                      colsample_bytree = best_colsample_bytree, 
                      min_child_weight = best_min_child_weight)
 
-final_nrounds <- final_cv$rounds
+final_params$best_rounds <- final_cv$rounds
 
+saveRDS(final_params, "final_params.rds")
 
 
 
