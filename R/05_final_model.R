@@ -4,10 +4,12 @@
 
 library(xgboost)
 library(SHAPforxgboost)
+#install.packages("basicstats", repos = NULL, type = "source")
+library(basicstats)
 
 # Reading in Data ---------------------------------------------------------
 
-source("R/03_model_optimization.R")
+source("R/03_data_preprocessing.R")
 
 final_params <- readRDS("final_params.rds")
 
@@ -23,22 +25,6 @@ final_param_list <- list(
 
 
 # Functions ---------------------------------------------------------------
-
-correlation <- function(obs, pred, method){
-  return( cor(pred, obs, method = method))
-}
-
-RMSE <- function(obs, pred){
-  return( sqrt(mean((obs-pred)^2)))
-}
-
-MAE <- function(obs, pred){
-  return(mean(abs(obs-pred)))
-}
-
-R2 <- function(obs, pred) {
-  1 - sum((obs - pred)^2) / sum((obs - mean(obs))^2)
-}
 
 
 compile <- function(model, rounds) {
@@ -72,7 +58,7 @@ xgb_model
 
 attributes(xgb_model)
 
-final_results <- compile(xgb_model, final_cv$rounds)
+final_results <- compile(xgb_model, final_params$best_rounds)
 
 # Plotting Variable Importance
 
