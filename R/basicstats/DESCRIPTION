@@ -1,20 +1,24 @@
 Package: basicstats
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Basic Statistical Functions
 Version: 0.1.0
 Authors@R: c(
     person(
-      "Jane", "Doe",
-      email = "jane@example.com",
+      "Lina", "Skog",
+      email = "skoglina7@gmail.com",
       role = c("aut", "cre")
     )
   )
-Description: More about what it does (maybe more than one line).
-    Continuation lines should be indented.
-License: What license is it under?
+Description: The basicstats package contains a few basic statistical functions.
+    The MAE function computes the mean absolute error between two sets of data.
+    The RMSE function computes the root mean squared error between sets of data.
+    The R2 function computes the R-squared between two sets of data.
+    The correlation function computes the correlation coefficients between two sets of data using Pearson (default), Spearman or Kendall.
+License: I don't know yet, remember to change this
 Encoding: UTF-8
 LazyData: true
 Config/roxygen2/version: 8.1.0
 Suggests: 
     testthat (>= 3.0.0)
 Config/testthat/edition: 3
+URL: https://linaskog.github.io/Advanced-Bioinformatics/
