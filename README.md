@@ -148,12 +148,18 @@ After selecting these parameter values, a final cross-validation identified 192 
 
 The optimization procedure can be found in: "R/04_model_optimization.R"
 
+## basicstats Package
+
+An R package was developed which computes root mean squared error (RMSE), mean absolute error (MAE), R-squared (R2) and correlation coefficients between a set of observed and predicted values.
+
+A separate documentation was set up for the basicstats package using pkgdown, <http://127.0.0.1:60903/index.html>.
+
 ## Final Model Evaluation
 
-The final XGBoost model was trained on the complete training dataset using the selected hyperparameters and 192 boosting rounds. The held-out test dataset was then used to obtain an independent evaluation of model performance.
+The final XGBoost model was trained on the complete training dataset using the selected hyperparameters and 192 boosting rounds. The held-out test dataset was then used to obtain an independent evaluation of model performance. The package basicstats was used to compute RMSE, MAE, R2 and Spearman's correlation coefficients between the observed and predicted datasets for the training data and the held-out testing data. The result of this analysis is shown in the table below.
 
 |  |  |  |  |  |  |  |  |  |
-|----------|----------|----------|----------|----------|-----------|--|----------|----------|
+|--------|--------|--------|--------|--------|--------|--------|--------|--------|
 | **rounds** | **trainRMSE** | **testRMSE** | **trainMAE** | **testMAE** | **trainR2** | **testR2** | **trainSpearman** | **testSpearman** |
 | 192 | 0.4633858 | 0.483437 | 0.318533 | 0.330785 | 0.1225377 | 0.07295608 | 0.3373936 | 0.2719628 |
 
@@ -166,3 +172,5 @@ The final model evaluation can be found in: "R/05_final_model.R"
 ## SHAP
 
 SHaplet Additive exPlanation was used to investigate how sequence features contributed to the predictions of the final model. SHAP analysis was performed on the final model after hyperparameter optimization.
+
+# 
