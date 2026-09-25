@@ -152,7 +152,7 @@ The optimization procedure can be found in: "R/04_model_optimization.R"
 
 An R package was developed which computes root mean squared error (RMSE), mean absolute error (MAE), R-squared (R2) and correlation coefficients between a set of observed and predicted values.
 
-A separate documentation was set up for the basicstats package using pkgdown, <http://127.0.0.1:60903/index.html>.
+A separate documentation was set up for the basicstats package using pkgdown.
 
 ## Final Model Evaluation
 
