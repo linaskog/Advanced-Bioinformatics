@@ -62,13 +62,23 @@ The count table contains:
 * BJAB Day 0: three replicates;
 * BJAB Day 14: three replicates.
 
-## Project scripts
+## Repository structure
 
 ```text
-R/
-├── 00_exploration.R
-├── 01_import_data.R
-└── 02_quality_control.R
+Advanced-Bioinformatics/
+├── Advanced-Bioinformatics.Rproj
+├── README.md
+├── data/
+│   ├── raw/
+│   │   ├── 41467_2018_5506_MOESM4_ESM.xlsx
+│   │   └── 41467_2018_5506_MOESM6_ESM.xlsx
+│   └── processed/
+│       └── library_b_prepared.rds
+└── R/
+    ├── 00_exploration.R
+    ├── 01_import_data.R
+    ├── 02_quality_control.R
+    └── 03_prepare_analysis_data.R
 ```
 
 ### `00_exploration.R`
@@ -93,6 +103,18 @@ Performs quality-control checks on the imported data, including:
 8. sequencing depth;
 9. agreement between biological replicates.
 
+### `03_prepare_analysis_data.R`
+
+Prepares Library B for downstream analysis. The script:
+
+1. classifies guides as Library A or Library B from their UID prefixes;
+2. filters the count and sequence tables independently to Library B;
+3. joins the tables safely by UID;
+4. corrects the `DEC1` Excel-formatting inconsistency in derived annotation columns;
+5. validates guide sequences and experimental counts;
+6. classifies targeting guides and non-targeting controls;
+7. identifies and labels repeated guide sequences without removing them; and
+8. creates the complete cleaned Library B dataset used for subsequent QC and modelling preparation.
 ## Quality-control results
 
 ### Dimensions and data types
@@ -152,7 +174,142 @@ The three apparent Library B mismatches involved the gene `DEC1`. Excel represen
 
 After correcting this formatting problem in derived variables, Library B had zero remaining UID-to-gene mismatches. The original raw data were not modified.
 
-Library B can therefore be connected to the guide sequences by UID. Library A must not be connected to guide sequences until its mapping problem has been resolved or an independently verified mapping source has been obtained.
+## Library selection and preparation
+
+The UID prefix identifies the GeCKO sublibrary:
+
+| UID prefix | Library | Number of guides |
+| ---------- | ------- | ----------------: |
+| `HGLibA_`  | Library A | 65,383 |
+| `HGLibB_`  | Library B | 58,028 |
+
+All 123,411 guides were assigned to one of these libraries, with no unknown UID prefixes.
+
+Library B is currently used for downstream guide-level analysis because its count and sequence tables can be connected reliably by UID after correction of the `DEC1` formatting problem. Library A has not been permanently discarded. Its annotation structure, controls, sequences, count completeness and sample-level behaviour will be investigated separately before a final decision is made.
+
+For Library B, the count and sequence tables were filtered independently using their own UID columns and then joined by `UID`. This avoids relying on row order or requiring the original gene annotations to agree during the join.
+
+The joined Library B dataset contained:
+
+- 58,028 sgRNA rows;
+- no missing guide sequences;
+- no missing experimental counts;
+- no duplicated UIDs;
+- 58,025 initially matching gene annotations; and
+- three apparent `DEC1` annotation mismatches caused by Excel formatting.
+
+Clean annotation columns, `Gene_counts_clean` and `Gene_library_clean`, were created without changing the imported raw data. After correcting `1-Dec` and `42339` to `DEC1`, all 58,028 Library B annotations agreed. The final analysis annotation is stored in the `Gene` column.
+
+## Library B sequence validation
+
+All 58,028 Library B guide sequences passed the sequence-level validation checks:
+
+- every guide sequence was 20 nucleotides long;
+- every sequence contained only `A`, `C`, `G` and `T`;
+- missing guide sequences: 0;
+- missing experimental counts: 0; and
+- duplicated UIDs: 0.
+
+These checks confirm that the cleaned Library B dataset is structurally complete for subsequent quality control and sequence-feature generation.
+
+## Targeting guides and non-targeting controls
+
+Library B contains:
+
+| Guide type | Number of guides |
+| ---------- | ---------------: |
+| Targeting guides | 57,028 |
+| Non-targeting controls | 1,000 |
+| **Total** | **58,028** |
+
+The targeting guides represent 19,049 annotated genes. The controls are identified by annotations beginning with:
+
+```text
+NonTargetingControlGuideForHuman_
+```
+A `target_type` column was created with two possible values:
+
+- `targeting`
+- `non_targeting_control`
+
+The controls were retained in the prepared dataset. They may be useful for quality control, normalization, negative-reference distributions and sensitivity analyses. They will not automatically be included as ordinary gene-targeting observations during model training.
+
+No miRNA annotations were detected within Library B using an annotation search.
+
+
+## Repeated guide sequences in Library B
+
+Guide sequences were checked independently of UID duplication. Although every UID was unique, some 20-nucleotide guide sequences occurred in multiple rows.
+
+The repeated-sequence analysis found:
+
+- 1,159 extra occurrences beyond the first occurrence;
+- 1,903 rows involved in sequence repetition;
+- 744 distinct repeated sequences;
+- no repeated sequences among the 1,000 non-targeting controls; and
+- repeated sequences assigned to between 2 and 21 gene annotations.
+
+All 1,903 repeated-sequence rows were targeting guides. Rows sharing an identical sequence had different UIDs and different 12-sample count profiles. A count profile refers to the complete vector of experimental counts for one row.
+
+Each Library B row was labelled using the `sequence_status` column:
+
+- `unique_sequence`;
+- `repeated_multi_gene`.
+
+The resulting classification was:
+
+| Guide type | Repeated multi-gene | Unique sequence |
+| ---------- | ------------------: | --------------: |
+| Non-targeting control | 0 | 1,000 |
+| Targeting | 1,903 | 55,125 |
+
+The repeated-sequence rows were retained because automatically excluding them would substantially reduce guide coverage:
+
+- 362 genes would lose all guides;
+- 277 genes would retain only one guide;
+- 382 genes would retain two guides; and
+- 1,021 genes would be affected in total.
+
+Before sequence-based modelling, the origin of the repeated sequences and their distinct count profiles should be investigated. If the data are divided into training and testing sets, identical guide sequences must be assigned to the same partition to prevent information leakage.
+
+## Processed Library B dataset
+
+The complete cleaned and labelled Library B dataset was saved as:
+
+```text
+data/processed/library_b_prepared.rds
+```
+The processed file contains all 58,028 Library B rows. It includes:
+
+- targeting guides and non-targeting controls;
+- corrected `DEC1` annotations;
+- validated 20-nucleotide guide sequences;
+- all 12 experimental count columns;
+- the `target_type` classification;
+- sequence multiplicity information; and
+- the `sequence_status` classification.
+
+No control guides or repeated-sequence rows were permanently removed from this file.
+
+The processed dataset can be loaded in R using:
+
+```r
+library_b_data <- readRDS(
+  "data/processed/library_b_prepared.rds"
+)
+```
+The targeting and control subsets should be regenerated from the latest version of `library_b_data`:
+
+```r
+library_b_targeting <- library_b_data[
+  library_b_data$target_type == "targeting",
+]
+
+library_b_controls <- library_b_data[
+  library_b_data$target_type == "non_targeting_control",
+]
+```
+
 
 ## miRNA targets
 
@@ -228,25 +385,58 @@ The following conclusions have been reached:
 
 ## Reproducing the current analysis
 
-Open the R project and ensure that the raw Excel files are available in `data/raw/`.
+Open `Advanced-Bioinformatics.Rproj` in RStudio so that the repository root is used as the working directory.
 
-Install the required import package if necessary:
+Ensure that the original Excel files are available in:
 
-```r
-install.packages("readxl")
+```text
+data/raw/
 ```
 
-Run the quality-control analysis from the project root:
+Install the required packages if they are not already installed:
+
+```r
+install.packages(c("readxl", "dplyr"))
+```
+
+Run the initial quality-control analysis:
 
 ```r
 source("R/02_quality_control.R")
 ```
 
-The quality-control script sources `R/01_import_data.R`, so the required data are imported before the checks are performed.
+This script sources `R/01_import_data.R` automatically before performing the initial checks.
 
-## Project status
+Prepare and save the complete Library B dataset:
 
-The import and initial quality-control stages are complete.
+```r
+source("R/03_prepare_analysis_data.R")
+```
 
-No final modeling dataset or prediction model has been created yet. The next decision is how to handle Library A and whether the first modeling analysis should use only the verified Library B guides.
+This script:
+
+1. imports the original data;
+2. selects Library B;
+3. joins counts and guide sequences by UID;
+4. corrects the derived `DEC1` annotations;
+5. validates sequences and counts;
+6. classifies targeting guides and controls;
+7. labels repeated guide sequences; and
+8. saves the prepared dataset as:
+
+```text
+data/processed/library_b_prepared.rds
+```
+
+The saved dataset can be loaded in a later R session using:
+
+```r
+library_b_data <- readRDS(
+  "data/processed/library_b_prepared.rds"
+)
+```
+
+The analysis does not depend on objects stored in `.RData`.
+
+
 
