@@ -10,6 +10,7 @@
 library(readxl)
 library(stringr)
 library(DESeq2)
+library(xgboost)
 
 
 # Reading in Data ---------------------------------------------------------
@@ -76,7 +77,8 @@ res <- results(dds, contrast = c("condition", "Day14", "Day0"))
 gecko$LFC <- res[gecko$UID, "log2FoldChange"]
 
 # Setting dependent variable y
-y <- gecko$LFC
+y_avg <- mean(gecko$LFC)
+y <- gecko$LFC - y_avg
 
 # Visualizing Log2 Fold Change distribution
 hist(y, breaks = 50, main = "LFC Distribution", xlab = "LFC")
@@ -143,3 +145,4 @@ dtest <- xgb.DMatrix(
   X[test_index, , drop = FALSE],
   label = y[test_index]
 )
+

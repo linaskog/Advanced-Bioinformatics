@@ -6,7 +6,7 @@ Improving CRISPR KO Screening
 
 Following the quality control, the data points from GeCKO library B were extracted resulting in 58,028 sgRNAs. The data points corresponding to non-targeting control sgRNAs were removed along with the three sgRNAs with mismatched gene identifiers between the data sheets. The resulting data set contains 57,025 sgRNAs.
 
-Initially only the sgRNA counts from the BC3 cell line were used. The log2 Fold Change between day 0 and day 14 was computed using the DESeq2 library. These values were then used as the dependent variable to estimate sgRNA efficacy.
+Initially only the sgRNA counts from the BC3 cell line were used. The log2 Fold Change between day 0 and day 14 was computed using the DESeq2 library. The average of these values was also computed and subtracted from the log2 Fold Change values. These values were then used as the dependent variable to estimate sgRNA efficacy.
 
 To model the sgRNA efficacy, the guide sequence composition was used. The overall GC-content was computed as the ratio of Guanine (G) and Cytosine (C) in the guide. Position-wise nucleotide composition was also used as input for the model.
 
@@ -161,7 +161,7 @@ The final XGBoost model was trained on the complete training dataset using the s
 |  |  |  |  |  |  |  |  |  |
 |--------|--------|--------|--------|--------|--------|--------|--------|--------|
 | **rounds** | **trainRMSE** | **testRMSE** | **trainMAE** | **testMAE** | **trainR2** | **testR2** | **trainSpearman** | **testSpearman** |
-| 192 | 0.4633858 | 0.483437 | 0.318533 | 0.330785 | 0.1225377 | 0.07295608 | 0.3373936 | 0.2719628 |
+| 192 | 0.4637178 | 0.483787 | 0.3187209 | 0.3309333 | 0.1216038 | 0.07149455 | 0.3354482 | 0.2706554 |
 
 The test-set RMSE was 0.483 compared with the training-set RMSE of 0.463, and the corresponding MAE values were 0.331 and 0.319 for the test- and training-sets. Furthermore a Spearman correlation between observed and predicted log2 fold changes was 0.272 for the test-set and 0.337 for the training-set. The computed R-squared for the final model was 0.07 for the test-data, whereas the R-squared for the training-data was 0.12.
 
@@ -172,5 +172,7 @@ The final model evaluation can be found in: "R/05_final_model.R"
 ## SHAP
 
 SHaplet Additive exPlanation was used to investigate how sequence features contributed to the predictions of the final model. SHAP analysis was performed on the final model after hyperparameter optimization.
+
+![](images/Rplot01.png)
 
 # 
