@@ -1,47 +1,77 @@
+# Reading in Necessary Libraries ------------------------------------------
+
 library(shiny)
 library(bslib)
 
-# Define UI for app that draws a histogram ----
-ui <- page_fluid(
-  # App title ----
-  title = "Welcome to the ...thing",
-  # Sidebar panel for inputs ----
-  card(plotOutput(outputId = "distPlot"),
-       sliderInput(
-         inputId = "bins",
-         label = "Number of bins:",
-         min = 5,
-         max = 50,
-         value = 30
-       )
-       ),
-    
-  card(plotOutput(outputId = "distPlot2"),
-       sliderInput(
-         inputId = "bins2",
-         label = "Number of bins:",
-         min = 0,
-         max = 25,
-         value = 10))
-  # Output: Histogram ----
-  
-)
 
-# Define server logic required to draw a histogram ----
+# Creating a User Interface -----------------------------------------------
+# QC-control
+qc_min = 1
+qc_max = 50
+qc_value = 30
+
+score_min = 1
+score_max = 50
+score_value = 30
+
+ui <- navbarPage(
+  "sgRNA Analyzer",
+  
+  # Input panel
+  tabPanel("Input Gene ID",
+           card(
+             card_header = "Gene Input",
+             "Please enter valid Ensembl Gene ID below and press submit to",
+             "find sgRNAs.",
+             textInput(
+               "geneID",
+               label = "Ensembl Gene ID",
+               value = "ENSG00000107485"
+             ),
+             actionButton("submit", 
+                          label = "Submit",
+                          style = 'width:150px'
+             ),
+           )
+  ),
+  
+  # Quality Control Plot panel
+  tabPanel("Quality Control",
+           card(
+             card_header = "Quality Control",
+             plotOutput(outputId = "qcplot"),
+             sliderInput(
+               inputId = "binsqc",
+               label = "Number of bins:",
+               min = qc_min,
+               max = qc_max,
+               value = qc_value
+             )
+           )
+  ),
+  
+  # sgRNA score plot
+  tabPanel("sgRNA Score Plot",
+           card(
+             card_header = "sgRNA Efficacy",
+             plotOutput( outputId = "scoreplot"),
+             sliderInput(
+               inputId = "binsscore",
+               label = "Number of bins:",
+               min = score_min,
+               max = score_max,
+               value = score_value
+             )
+           )
+  )
+) 
+
+
 server <- function(input, output) {
   
-  # Histogram of the Old Faithful Geyser Data ----
-  # with requested number of bins
-  # This expression that generates a histogram is wrapped in a call
-  # to renderPlot to indicate that:
-  #
-  # 1. It is "reactive" and therefore should be automatically
-  #    re-executed when inputs (input$bins) change
-  # 2. Its output type is a plot
-  output$distPlot <- renderPlot({
-    
+  output$qcplot <- renderPlot({
     x    <- faithful$waiting
-    bins <- seq(min(x), max(x), length.out = input$bins + 1)
+    bins <- seq(min(x), max(x), length.out = input$binsqc + 1)
     
     hist(x, breaks = bins, col = "#007bc2", border = "orange",
          xlab = "Waiting time to next eruption (in mins)",
@@ -49,9 +79,9 @@ server <- function(input, output) {
     
   })
   
-  output$distPlot2 <- renderPlot({
+  output$scoreplot <- renderPlot({
     x2 <- faithful$eruptions
-    bins2 <- seq(min(x2), max(x2), length.out = input$bins2 + 1)
+    bins2 <- seq(min(x2), max(x2), length.out = input$binsscore + 1)
     
     hist(x2, breaks = bins2, col = "green", border = "orange",
          xlab = "Eruptions",
