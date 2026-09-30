@@ -76,12 +76,16 @@ res <- results(dds, contrast = c("condition", "Day14", "Day0"))
 # Extracting Log2 Fold Change data
 gecko$LFC <- res[gecko$UID, "log2FoldChange"]
 
+
+
 # Setting dependent variable y
-y_avg <- mean(gecko$LFC)
-y <- gecko$LFC - y_avg
+y_gene_avg <- tapply(gecko$LFC, gecko$Gene, mean, na.rm = TRUE)
+y <- as.numeric(gecko$LFC - y_gene_avg[gecko$Gene])
+
 
 # Visualizing Log2 Fold Change distribution
-hist(y, breaks = 50, main = "LFC Distribution", xlab = "LFC")
+hist(y, breaks = 50, main = "Gene-Centered LFC Distribution BC-3", xlab = "LFC")
+hist(gecko$LFC, breaks = 50, main = "Raw LFC Distribution BC-3", xlab = "LFC")
 
 
 # Computing Independent Variables -----------------------------------------
@@ -94,7 +98,7 @@ gecko$GC <- (str_count(gecko$Guide, "G") +
 
 # Visualizing GC-content distribution
 
-hist(gecko$GC, breaks = 20, main = "GC-content", xlab = "GC")
+hist(gecko$GC, breaks = 20, main = "GC-content BC-3 sgRNAs", xlab = "GC")
 
 # Transforming sequence to numerical representations for each position
 

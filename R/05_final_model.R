@@ -53,6 +53,11 @@ xgb_model <- xgb.train(
   data = dtrain,
   nrounds = final_params$best_rounds)
 
+# Saving final model
+
+xgb.save(xgb_model, "xgb_model.ubj")
+
+
 # Final Model Metrics
 
 xgb_model
@@ -72,8 +77,8 @@ xgb.plot.importance(var_imp)
 
 # Predicted vs. Observed Plots --------------------------------------------
 
-pred_train <- predict(xgb_model, dtrain)
-pred_test <- predict(xgb_model, dtest)
+pred_train <- predict(xgb_model, X[train_index,])
+pred_test <- predict(xgb_model, X[test_index, ])
 
 plot(y[train_index], pred_train , main = "Training Set Predicted vs. Observed",
      xlab = "Observed", ylab = "Predicted")
