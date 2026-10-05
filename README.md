@@ -383,6 +383,89 @@ The following conclusions have been reached:
 9. No raw data have been modified or deleted.
 
 
+
+## Genome mapping and annotation
+
+To add genomic context to the CRISPR screen data, the targeting sgRNAs from Library B were mapped to the human reference genome hg19.
+
+
+### Preparing sgRNA sequences
+
+`R/06_prepare_genome_mapping.R` prepares the targeting guides for genome mapping.
+
+The script:
+
+- loads `data/processed/library_b_prepared.rds`;
+- keeps only targeting guides;
+- verifies that all guide sequences are 20 nt long and contain only A/C/G/T;
+- creates a FASTA file using the guide UID as sequence identifier;
+- writes the result to:
+
+`data/processed/library_b_targeting_guides.fa`
+
+The final FASTA contains 57,028 targeting sgRNAs.
+
+### Genome indexing and Bowtie mapping
+
+The hg19 reference genome was indexed with Bowtie 1.3.1 on HPC2N using SLURM.
+
+The SLURM scripts are stored in:
+
+- `slurm/build_hg19_index.slurm`
+- `slurm/map_guides_to_hg19.slurm`
+
+`build_hg19_index.slurm` builds the Bowtie index from `hg19.fa`.
+
+`map_guides_to_hg19.slurm` maps all targeting sgRNAs against hg19 using exact matching only (`-v 0`) and reports all exact genomic matches (`-a`).
+
+Mapping results:
+
+- 57,028 guides processed
+- 57,028 guides had at least one exact hg19 alignment
+- 52,357 guides mapped uniquely
+- 4,671 guides had multiple exact genomic matches
+- 333,078 total exact alignments were reported
+
+The uniquely mapped guide coordinates are stored in:
+
+`data/processed/guide_hg19_unique_coordinates.tsv`
+
+### Genome annotation
+
+`R/07_annotate_genome_mapping.R` annotates the uniquely mapped guides using the UCSC hg19 RefGene annotation:
+
+`data/reference/hg19.refGene.gtf.gz`
+
+The annotation is imported with `rtracklayer` and represented as `GRanges` objects. Guide coordinates are also converted to `GRanges`, and `findOverlaps()` is used to compare sgRNA positions with transcript and exon regions.
+
+Guides are classified as:
+
+- **exon**: overlaps at least one annotated exon;
+- **intron**: overlaps an annotated transcript but no exon;
+- **intergenic**: overlaps no annotated transcript.
+
+Annotation summary:
+
+- 52,281 exon-overlapping guides
+- 26 intron-only guides
+- 50 intergenic guides
+
+Gene annotation is also added. If a guide overlaps more than one annotated gene, all distinct gene names are retained as a semicolon-separated value rather than choosing one arbitrarily.
+
+Gene-overlap summary:
+
+- 48,377 guides overlap exactly one gene
+- 3,930 guides overlap multiple genes
+- 50 guides overlap no annotated gene
+
+The final annotated table is stored in:
+
+`data/processed/guide_hg19_annotated.tsv`
+
+The table contains genomic coordinates, strand, mapped sequence, region type, gene annotation, and the number of overlapping genes for each uniquely mapped sgRNA.
+
+
+------------------------------------------------------------------------------------------------
 ## Reproducing the current analysis
 
 Open `Advanced-Bioinformatics.Rproj` in RStudio so that the repository root is used as the working directory.

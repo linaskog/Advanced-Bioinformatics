@@ -2,5 +2,7 @@
 .Rhistory
 .RData
 .Ruserdata
-.RDataTmp
+.RDataTmp*
 data/raw/*
+data/reference/*.fa
+data/reference/*.fa.gz
