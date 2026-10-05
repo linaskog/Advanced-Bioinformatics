@@ -464,7 +464,37 @@ The final annotated table is stored in:
 
 The table contains genomic coordinates, strand, mapped sequence, region type, gene annotation, and the number of overlapping genes for each uniquely mapped sgRNA.
 
+### BC-3 H3K27ac ChIP-seq integration
 
+As a second additional dataset, BC-3 H3K27ac ChIP-seq peak data were integrated to add BC-3-specific regulatory chromatin information to the CRISPR guide annotations.
+
+The processed peak file used was:
+
+`data/raw/GSM4040945_BC3.merge.peak.bed.gz`
+
+This BED file contains 25,546 H3K27ac-enriched genomic regions from the BC-3 cell line.
+
+`R/08_integrate_bc3_h3k27ac.R`:
+
+- imports the H3K27ac peak BED file with `rtracklayer`;
+- converts the peak coordinates to a `GRanges` object;
+- loads the uniquely mapped and genome-annotated sgRNA table;
+- converts guide coordinates to `GRanges`;
+- uses `findOverlaps()` to identify sgRNAs whose genomic target sites overlap BC-3 H3K27ac peaks;
+- adds a binary feature, `H3K27ac_peak_overlap`.
+
+Integration summary:
+
+- 52,357 uniquely mapped guides analysed
+- 25,546 BC-3 H3K27ac peaks
+- 4,118 guides overlap at least one H3K27ac peak
+- 48,239 guides do not overlap an H3K27ac peak
+
+The integrated output is stored in:
+
+`data/processed/guide_hg19_bc3_h3k27ac.tsv`
+
+The resulting table combines genomic coordinates, gene and region annotation, and BC-3 H3K27ac regulatory information for downstream statistical or machine-learning analyses.
 ------------------------------------------------------------------------------------------------
 ## Reproducing the current analysis
 
