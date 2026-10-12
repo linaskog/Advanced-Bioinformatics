@@ -173,4 +173,19 @@ The final model evaluation can be found in: "R/05_final_model.R"
 
 SHaplet Additive exPlanation was used to investigate how sequence features contributed to the predictions of the final model. SHAP analysis was performed on the final model after hyperparameter optimization.
 
-# 
+#
+
+## Shiny Application — Guide Quality Control
+
+The existing Quality Control tab in `R/test_app.R` was extended to evaluate basic sequence-design properties of newly generated candidate sgRNAs.
+
+The improvements include:
+- An interactive GC-content histogram with an adjustable reference range (default 40–70%).
+- Summary statistics showing the total number of candidate sgRNAs, mean GC content, and percentage within the selected range.
+- A searchable, sortable, and paginated sgRNA quality table.
+- Detection of poly-T (`TTTT`) motifs and homopolymer runs of four or more A, C, or G nucleotides.
+- A sequence QC flag (`Review` or `No flags`) based on the selected GC range and detected sequence motifs.
+
+These checks provide preliminary sequence-design information. They do not directly measure sgRNA editing efficiency or off-target specificity.
+
+The existing gene-input and XGBoost score-plot functionalities are preserved. The interactive table uses the R package `DT`.
