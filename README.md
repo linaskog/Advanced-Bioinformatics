@@ -552,4 +552,18 @@ library_b_data <- readRDS(
 The analysis does not depend on objects stored in `.RData`.
 
 
+## Ensembl Gene ID Conversion and Annotation
+
+The uniquely mapped GeCKO Library B sgRNAs from the HPC2N genome-mapping analysis were annotated using `EnsDb.Hsapiens.v75` (GRCh37/hg19).
+
+Using genomic overlaps, sgRNA coordinates were matched to Ensembl gene regions to retrieve Ensembl gene IDs and their corresponding gene symbols.
+
+Of the 52,357 mapped sgRNAs, 52,311 overlapped at least one Ensembl gene region, while 46 had no overlap. Some guides overlapped multiple genes, and these associations were preserved.
+
+The results were saved as `data/processed/guide_ensembl_annotations.rds`, containing `UID`, `Ensembl_ID`, and `Gene_symbol`.
+
+These annotations describe genomic overlaps and do not necessarily identify the intended functional target of each sgRNA.
+
+**Script:** `R/9_gene_id_conversion.R`
+
 
