@@ -154,6 +154,14 @@ server <- function(input, output) {
       ensembl,
       filter = ~gene_id == input$geneID
     )
+    
+    #validation control
+    validate(
+      need(length(gene)>0,
+           "No gene found for this Ensembl ID. Please check your input."
+           )
+      
+    )
     # Changing style to match datasets
     seqlevelsStyle(gene) <- "UCSC"
     # Extracting GOI from reference genome --> DNAString Class
@@ -167,13 +175,20 @@ server <- function(input, output) {
 
     # Adding identification column to guide data frame
     guides$ID <- 1:nrow(guides)
+    #store the gene symbol for display
+    attr(guides,"gene_symbol")<-gene$gene_name[1]
+    attr(guides, "ensembl_id") <- input$geneID
 
     guides
     })
 
   output$output_text <- renderText({
     guides <- submit_reactive()
-    paste(input$geneID, "loaded,", nrow(guides), "sgRNAs found")
+    paste0(
+      attr(guides,"gene_symbol"),
+      " (", attr(guides, "ensembl_id"), ") loaded, ",
+      nrow(guides), " sgRNAs found"
+    )
     })
   ## display total nr of candidate sgRNAs and mean GC
   output$qc_guide_count <- renderText({
