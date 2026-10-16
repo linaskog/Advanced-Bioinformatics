@@ -189,3 +189,10 @@ The improvements include:
 These checks provide preliminary sequence-design information. They do not directly measure sgRNA editing efficiency or off-target specificity.
 
 The existing gene-input and XGBoost score-plot functionalities are preserved. The interactive table uses the R package `DT`.
+
+
+## Shiny Application — Ensembl ID Conversion
+
+The Shiny application uses Ensembl gene IDs to retrieve gene information and generate candidate sgRNAs. Gene symbols are retrieved from `EnsDb.Hsapiens.v75` and displayed alongside the corresponding Ensembl IDs and candidate sgRNA counts.
+
+The application also validates submitted gene IDs and displays an informative message when an ID is not found. This functionality is separate from the genomic-overlap annotations of the GeCKO Library B guides.
