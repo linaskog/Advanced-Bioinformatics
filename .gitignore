@@ -6,3 +6,10 @@
 data/raw/*
 data/reference/*.fa
 data/reference/*.fa.gz
+data/processed/new_guides_hg19.tsv
+hg19_index/hg19.1.ebwt
+hg19_index/hg19.2.ebwt
+hg19_index/hg19.4.ebwt
+hg19_index/hg19.3.ebwt
+hg19_index/hg19.rev.1.ebwt
+hg19_index/hg19.rev.2.ebwt
