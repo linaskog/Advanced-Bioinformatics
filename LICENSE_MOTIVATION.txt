@@ -1,0 +1,4 @@
+For our project we chose the MIT License. We like this particular license because it's simple and permissive.
+The MIT License allows others to copy, modify, merge and distribute the code, giving it a lot of flexibility.
+
+This license allows our code to be used in a commercial product, provided that the copyright and license notices are preserved. 
