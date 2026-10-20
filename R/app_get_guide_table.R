@@ -45,6 +45,10 @@ get_guide_table <- function(geneID) {
   # Adding ID to guides -----------------------------------------------------
   guides$ID <- 1:nrow(guides)
   
+  # Adding Gene Name
+  attr(guides,"gene_symbol") <- gene$gene_name[1]
+  attr(guides, "ensembl_id") <- geneID
+  
   # Adding Chromosome Information -------------------------------------------
   guides$chromosome <- as.character(seqnames(gene))
   

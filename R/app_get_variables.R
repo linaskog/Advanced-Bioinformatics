@@ -82,4 +82,9 @@ get_variables <- function(geneID) {
                      H3K27ac_peak_overlap = as.numeric(
                        guides$H3K27ac_peak_overlap)
   )
+  
+  attr(variables,"gene_symbol") <- attr(guides, "gene_symbol")
+  attr(variables, "ensembl_id") <- attr(guides, "ensembl_id")
+  
+  return( variables )
 }

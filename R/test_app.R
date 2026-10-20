@@ -1,186 +1,41 @@
-# Reading in Datasets -----------------------------------------------------
-
-# Human reference genome hg19
-library(BSgenome.Hsapiens.UCSC.hg19)
-
-# Human genome annotated with Ensembl IDs
-library(EnsDb.Hsapiens.v75)
-
 # Reading in Necessary Libraries ------------------------------------------
 
 library(shiny)
 library(bslib)
-library(GenomicRanges)
-library(GenomeInfoDb)
-library(Biostrings)
 library(xgboost)
-library(stringr)
 
-
-ensembl <- EnsDb.Hsapiens.v75
-genome <- BSgenome.Hsapiens.UCSC.hg19
-
+# takes gene ID as input, returns variables
+source("~/GitHub/Advanced-Bioinformatics/R/app_get_variables.R")
+source("~/GitHub/Advanced-Bioinformatics/R/app_input_panel.R")
+source("~/GitHub/Advanced-Bioinformatics/R/app_quality_control_panel.R")
+source("~/GitHub/Advanced-Bioinformatics/R/app_score_panel.R")
 
 # Reading in Models -------------------------------------------------------
 
-xgb_model <- xgb.load("xgb_model.ubj")
-
-# Finding sgRNAs ----------------------------------------------------------
-
-finding_sgRNAs <- function(gene_sequence, PAM = "NGG") {
-  # Locate PAM sequences in gene of interest
-  pam_sequences <- matchPattern(
-    PAM,
-    gene_sequence,
-    fixed = FALSE
-  )
-
-  # Locating PAM start positions for valid (20 nt) sgRNAs
-  pam_start <- start(pam_sequences)
-  pam_start <- pam_start[pam_start > 20]
-
-  # Creating IRange object for each sgRNA
-  guide_ranges <- IRanges(
-    start = pam_start - 20,
-    end = pam_start -1
-  )
-
-  # Creating data frame for Guide sequences extracted using IRanges
-  data.frame( "Guide" = as.character(extractAt(
-    gene_sequence,
-    guide_ranges))
-  )
-}
+xgb_model <- xgb.load(
+  "~/GitHub/Advanced-Bioinformatics/models/xgb_model.ubj")
+linear_model <- readRDS(
+  "~/GitHub/Advanced-Bioinformatics/models/linear_model.rds")
 
 # Creating a User Interface -----------------------------------------------
-# QC-control
-qc_min = 1
-qc_max = 20
-qc_value = 10
 
-score_min = 1
-score_max = 30
-score_value = 15
+# Creating a User Interface -----------------------------------------------
 
 ui <- navbarPage(
   "sgRNA Analyzer",
-
-  # Input panel
-  tabPanel("Input Gene ID",
-           card(
-             card_header = "Gene Input",
-             "Please enter valid Ensembl Gene ID below and press submit to",
-             "find sgRNAs.",
-             br(),
-             br(),
-             textInput(
-               "geneID",
-               label = "Ensembl Gene ID",
-               value = "ENSG00000107485"
-             ),
-             br(),
-             actionButton(
-               "submit",
-               label = "Submit",
-               style = 'width:150px'
-             ),
-             br(),
-             textOutput(
-               "output_text"
-             )
-           )
-  ),
-
-  # Quality Control Plot panel
-  tabPanel("Quality Control",
-           card(
-             card_header = "Quality Control",
-             textOutput(outputId = "qc_guide_count"),
-             textOutput(outputId = "qc_mean_gc"),
-
-             sliderInput(
-               inputId = "gc_range",
-               label = "GC-content reference range (%)",
-               min = 0,
-               max = 100,
-               value = c(40,70),
-               step = 5,
-               post = "%"
-             ),
-             textOutput(outputId = "qc_gc_range_summary"),
-
-             plotOutput(outputId = "qcplot"),
-             helpText(
-               "The shaded region represents the user-selected GC-content range. ",
-               "GC content is one sequence-quality indicator, but it does not ",
-               "directly measure sgRNA editing efficiency."
-             ),
-             tags$hr(),
-             h4("Candidate sgRNA Quality Table"),
-             DT::DTOutput(outputId = "guide_quality_table"),
-             helpText(
-               "Sequence QC flag: 'No flags' means the guide passes the selected ",
-               "GC-content range and contains no detected poly-T (TTTT) or ",
-               "other homopolymer runs of four or more nucleotides. ",
-               "'Review' indicates at least one of these criteria was flagged. ",
-               "These checks do not measure editing efficiency or off-target specificity."
-             )
-
-           )
-  ),
-
-  # sgRNA score plot
-  tabPanel("sgRNA Score Plot",
-           card(
-             card_header = "sgRNA Efficacy",
-             plotOutput( outputId = "scoreplot"),
-             sliderInput(
-               inputId = "binsscore",
-               label = "Number of bins:",
-               min = score_min,
-               max = score_max,
-               value = score_value
-             )
-           )
-  )
+  # Input Panel (R/app_input_panel.R)
+  input_panel,
+  # Quality Control Plot Panel (R/app_quality_control_panel.R)
+  quality_control_panel,
+  # Score Plot Panel (R/app_score_panel.R)
+  score_panel
 )
 
 
 server <- function(input, output) {
-
   submit_reactive <- eventReactive ( input$submit, {
-
-    gene <- genes(
-      ensembl,
-      filter = ~gene_id == input$geneID
-    )
-    
-    #validation control
-    validate(
-      need(length(gene)>0,
-           "No gene found for this Ensembl ID. Please check your input."
-           )
-      
-    )
-    # Changing style to match datasets
-    seqlevelsStyle(gene) <- "UCSC"
-    # Extracting GOI from reference genome --> DNAString Class
-    gene_sequence <- getSeq(genome, gene)[[1]]
-    # Creating reverese complement of GOI
-    gene_sequence_reverse <- reverseComplement(gene_sequence)
-
-    # Creating data frame with all forward and reverse sgRNAs
-    guides <- rbind(finding_sgRNAs(gene_sequence),
-                    finding_sgRNAs(gene_sequence_reverse))
-
-    # Adding identification column to guide data frame
-    guides$ID <- 1:nrow(guides)
-    #store the gene symbol for display
-    attr(guides,"gene_symbol")<-gene$gene_name[1]
-    attr(guides, "ensembl_id") <- input$geneID
-
-    guides
-    })
+    guides <- get_variables(geneID = input$geneID)
+  })
 
   output$output_text <- renderText({
     guides <- submit_reactive()
@@ -193,18 +48,12 @@ server <- function(input, output) {
   ## display total nr of candidate sgRNAs and mean GC
   output$qc_guide_count <- renderText({
     guides <- submit_reactive()
-
     paste("Total candidate sgRNAs: ", nrow(guides))
   })
 
   output$qc_mean_gc <- renderText({
     guides <- submit_reactive()
-
-    gc <- (
-      str_count(guides$Guide, "G")+
-      str_count(guides$Guide, "C")
-    ) / str_length(guides$Guide)
-    paste0("Mean GC content: ", round(mean(gc) *100, 1),"%")
+    paste0("Mean GC content: ", round(mean(guides$GC) *100, 1),"%")
   })
 
   #sgRNA quality table
@@ -212,14 +61,11 @@ server <- function(input, output) {
     guides <- submit_reactive()
 
     #calculate GC content as precentage
-    gc_precent<- (
-      str_count(guides$Guide, "G")+
-      str_count(guides$Guide, "C")
-    )/ str_length(guides$Guide)*100
+    gc_precent<- guides$GC*100
 
     #quality table
     quality_table<- data.frame(
-      "Guide ID"=guides$ID,
+      "Guide ID"=guides$UID,
       "Guide sequence"= guides$Guide,
       "GC (%)"= round(gc_precent,1),
       check.names = FALSE
@@ -307,10 +153,7 @@ server <- function(input, output) {
   output$qc_gc_range_summary<- renderText({
     guides <-submit_reactive()
 
-    gc<- (
-      str_count(guides$Guide, "G")+
-      str_count(guides$Guide, "C")
-    )/ str_length(guides$Guide)
+    gc<- guides$GC
 
     gc_min<- input$gc_range[1]/100
     gc_max<- input$gc_range[2]/100
@@ -327,9 +170,6 @@ server <- function(input, output) {
 
   output$qcplot <- renderPlot({
     guides <- submit_reactive()
-    guides$GC <- (str_count(guides$Guide, "G") +
-                    str_count(guides$Guide, "C")
-    )/str_length(guides$Guide)
 
     bins <- seq(min(guides$GC), max(guides$GC), length.out = 11)
 
@@ -354,43 +194,113 @@ server <- function(input, output) {
     )
   })
 
-  output$scoreplot <- renderPlot({
+  evaluated_scores <- reactive({
     guides <- submit_reactive()
-
-    guides$GC <- (str_count(guides$Guide, "G") +
-                   str_count(guides$Guide, "C")
-    )/str_length(guides$Guide)
-
-    sequence_matrix <- str_split_fixed(
-      guides$Guide,
-      pattern = "",
-      n = 20)
-
-    X <- do.call(
-      cbind,
-      lapply(1:20, function(i) {
-        model.matrix(~ sequence_matrix[, i] - 1)
-      })
+    
+    pos <- as.matrix(guides[, grep("pos", colnames(guides))])
+    additional_data <- as.matrix(guides[, c("GC", "strand", "chromosome", 
+                                            "region_type", "gene_overlap_count", 
+                                            "H3K27ac_peak_overlap")
+    ]
     )
-
-    colnames(X) <- paste0(
-      rep(paste0("pos", 1:20), each = 4),
-      "_",
-      rep(c("A", "C", "G", "T"), 20)
+    xgb_data <- cbind(pos, additional_data)
+    
+    scores <- data.frame("UID" = guides$UID,
+                         "Guide" = guides$Guide,
+                         "LinearScore" = predict(linear_model, guides),
+                         "XGBScore" = predict(xgb_model, xgb_data),
+                         check.names = FALSE)
+    
+    weight_linear <- input$linear_weight
+    weight_xgb <- 1 - weight_linear
+    
+    # Computing combined model score
+    scores$Combination <- (weight_linear*scores$LinearScore) + 
+      (weight_xgb*scores$XGBScore)
+    
+    # Computing difference between model scores
+    scores$Difference <- abs(100 * (scores$LinearScore - scores$XGBScore)/
+                               (scores$LinearScore + scores$XGBScore)/2)
+    
+    # Ordering sgRNAs for selected model
+    scores[order(scores[[input$select]]), ]
+  })
+  
+  output$plot <- plotly::renderPlotly({
+    scores <- evaluated_scores()
+    top_scores <- head(scores, min(input$top_n, nrow(scores)))
+    
+    p <- ggplot(
+      data = scores, 
+      aes(
+        x = LinearScore,
+        y = XGBScore,
+        colour = Combination,
+        text = paste0("<b>sgRNA: </b>", UID, "<br>",
+                      "<b>Guide: </b>", Guide, "<br>", 
+                      "<b>Combination: </b>", round(Combination, 4), "<br>", 
+                      "<b>Linear: </b>", round(LinearScore, 4), "<br>",
+                      "<b>XGBoost: </b>", round(XGBScore, 4), "<br>",
+                      "<b>Difference: </b>", round(Difference, 2), "<br>")
+      )) + 
+      geom_point(alpha = 0.3) +
+      geom_point(
+        data = top_scores,
+        aes(x = LinearScore,
+            y = XGBScore),
+        colour = "maroon") +
+      labs( x = "Linear Model Prediction",
+            y = "XGBoost Model Prediction")+
+      theme_light()
+    
+    plotly::ggplotly(p, tooltip = "text")
+  })
+  output$top_sgrna_table <- DT::renderDT({
+    scores <- evaluated_scores()
+    scores <- head(scores, min(input$top_n, nrow(scores)))
+    
+    score_table <- 
+      data.frame(
+        "ID" = scores$UID, 
+        "Guide" = scores$Guide,
+        "Linear Score" = round(scores$LinearScore, 4),
+        "XGBoost Score" = round(scores$XGBScore, 4),
+        "Combined Score" = round(scores$Combination, 4),
+        "Difference %" = round(scores$Difference, 2),
+        check.names = FALSE)
+    
+    # Creating Column for Flagging guides with high score variability
+    score_table[["Flagged"]] <- ifelse(
+      score_table[["Difference %"]] > input$max_difference,
+      "YES",
+      "NO"
     )
-
-    X <- cbind(X, GC = guides$GC)
-
-    guides$predictions <- predict(xgb_model, X)
-
-    bins2 <- seq(min(guides$predictions),
-                 max(guides$predictions),
-                 length.out = input$binsscore + 1 )
-
-    hist(guides$predictions, breaks = bins2, col = "lightblue", border = "grey",
-         xlab = "XGB Score",
-         main = "Distribtution of XGB Scores")
-
+    
+    # Formatting datatable
+    dt <- DT::datatable(
+      score_table,
+      rownames = FALSE,
+      options = list(
+        pageLength=5,
+        lengthMenu= c(5,10,25,50),
+        scrollY = "300px",
+        scrollX=TRUE
+      )
+    )
+    
+    # Adding color to Flagged column
+    DT::formatStyle(
+      dt,
+      "Flagged",
+      backgroundColor = DT::styleEqual(
+        c("NO", "YES"),
+        c("#EAF5EC", "#FFF3E0")
+      ),
+      color = DT::styleEqual(
+        c("NO", "YES"),
+        c("#216E39","#9A5A08")
+      )
+    )
   })
 
 }
