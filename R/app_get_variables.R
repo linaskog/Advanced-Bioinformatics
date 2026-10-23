@@ -1,10 +1,21 @@
 # app_get_variables.R
 
 # Purpose:
-# Prepare variable data for modelling
+# Prepare variable data for modelling guides for a valid gene ID
 
 # Input:
-# - sources app
+# - sources app_get_h3k27ac_peak_overlap.R
+
+# Output:
+# - data frame with;
+# - metadata; UID, Guide
+# - one-hot encoded guide nucleotide information
+# - GC-content on 0-1 scale
+# - Strand data numeric based on factors with levels -, +
+# - Chromosome data numeric based on factors with levels Chr1-Chr22, ChrX, ChrY
+# - Region type as numeric based on factors with levels exon, intergenic, intron
+# - Gene overlap count as numeric, no. of overlapped genes
+# - H3K27ac peak overlap as numeric representation of True (1) and False (0)
 
 # Sourcing extracted data -------------------------------------------------
 

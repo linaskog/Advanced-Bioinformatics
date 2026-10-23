@@ -1,3 +1,8 @@
+# test_app.R
+
+# Purpose:
+# - Interface for finding and evaluating sgRNAs
+
 # Reading in Necessary Libraries ------------------------------------------
 
 library(shiny)

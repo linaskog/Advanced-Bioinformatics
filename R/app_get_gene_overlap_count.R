@@ -1,10 +1,15 @@
 # app_get_gene_overlap_count.R
+# code for finding overlap counts of sgRNA's
 
 # Purpose:
-# Find gene overlap counts
+# Find gene overlap counts for guides for a given gene ID
 
 # Input:
 # - Sources R/app_get_region_type.R
+# - Bowtie index for hg19 reference genome, computed with SLURM
+
+# Output:
+# - Guide dataframe from app_get_region_type.R with gene overlap count column
 
 # Reading in Necessary Libraries ------------------------------------------
 library(Rbowtie)

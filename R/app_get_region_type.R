@@ -1,11 +1,16 @@
 # app_get_region_type.R
-#
+# Function for finding region type of sgRNAs
 
 # Purpose:
 # Find region type associated with guide sequence
+# - exon, intron or intergenic
 
 # Input:
 # - Sources R/app_get_guide_table.R
+# - hg19 reference genome as gtf
+
+# Output:
+# - guide data frame from app_get_guide_table.R with added region type column
 
 # Reading in Necessary Libraries ------------------------------------------
 

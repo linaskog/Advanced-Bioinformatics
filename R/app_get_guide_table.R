@@ -1,11 +1,15 @@
 # app_get_guide_table.R
-# Code for computing and extracting variables associated with guide sgRNAs
+# Code for computing extracting guide sequence and related metrics
 
 # Purpose:
-# Finding sgRNA's and extracting  information for modelling
+# Extracting sgRNAs and related metrics for a valid gene ID
 
 # Input:
 # - Sources R/app_finding_sgRNAs.R
+
+# Output:
+# - Guide data frame with guide, ID, strand and chromosome and attributes
+# for gene ID and name
 
 # Reading in Necessary Libraries ------------------------------------------
 
@@ -26,10 +30,6 @@ get_guide_table <- function(geneID) {
   gene_sequence <- getSeq(genome, gene)[[1]]
   # Creating reverese complement of GOI
   gene_sequence_reverse <- reverseComplement(gene_sequence)
-  
-  gene_start <- start(gene)
-  gene_end <- end(gene)
-  
   
   # Finding sgRNAs for GOI --------------------------------------------------
   forward_guides <- finding_sgRNAs(gene_sequence)

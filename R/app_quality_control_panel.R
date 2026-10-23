@@ -1,3 +1,6 @@
+# app_quality_control_panel.R
+# quality_control_panel object for Rshiny interface ("R/test_app.R")
+
 quality_control_panel <- 
   tabPanel("Quality Control",
          card(

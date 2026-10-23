@@ -1,13 +1,17 @@
-# finding_sgRNAs.R
-# Code for exxtracting guide sequences from human reference genome given a 
-# valid input gene
+# app_finding_sgRNAs.R
+# Code for function extracting guide sequences from human reference genome 
+# given a valid gene ID
 
 # Purpose:
 # Finding sgRNA's for input gene
 
 # Input:
+# - Ensembl geneID
 # - Human reference genome
 # - Ensembl nnotated human genome
+
+# Output:
+# - data frame with sgRNAs
 
 # Reading in Necessary Libraries ------------------------------------------
 
@@ -25,7 +29,8 @@ ensembl <- EnsDb.Hsapiens.v75
 
 # Finding sgRNAs ----------------------------------------------------------
 
-finding_sgRNAs <- function(gene_sequence, PAM = "NGG") {
+finding_sgRNAs <- function(gene_sequence, 
+                           PAM = "NGG") {
   # Locate PAM sequences in gene of interest
   pam_sequences <- matchPattern(
     PAM,

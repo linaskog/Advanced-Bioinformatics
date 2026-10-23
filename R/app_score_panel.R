@@ -1,4 +1,5 @@
 # app_score_panel.R
+# score_panel object for Rshiny interface ("R/test_app.R")
 
 score_panel <- tabPanel(
   "Score",
