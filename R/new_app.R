@@ -3,12 +3,34 @@
 library(shiny)
 library(bslib)
 library(xgboost)
+library(stringr)
+library(ggplot2)
 
 # takes gene ID as input, returns variables
 source("~/GitHub/Advanced-Bioinformatics/R/app_get_variables.R")
 source("~/GitHub/Advanced-Bioinformatics/R/app_input_panel.R")
 source("~/GitHub/Advanced-Bioinformatics/R/app_quality_control_panel.R")
 source("~/GitHub/Advanced-Bioinformatics/R/app_score_panel.R")
+source("R/app_postgres_cache.R")
+
+
+
+# Connect to PostgreSQL using local environment variables
+db_password <- Sys.getenv("CRISPR_DB_PASSWORD")
+
+if (!nzchar(db_password)) {
+  stop("PostgreSQL password is missing. Check .Renviron and restart R.")
+}
+
+pg_con <- DBI::dbConnect(
+  RPostgres::Postgres(),
+  host = Sys.getenv("CRISPR_DB_HOST"),
+  port = as.integer(Sys.getenv("CRISPR_DB_PORT")),
+  dbname = Sys.getenv("CRISPR_DB_NAME"),
+  user = Sys.getenv("CRISPR_DB_USER"),
+  password = db_password
+)
+
 
 # Reading in Models -------------------------------------------------------
 
@@ -30,8 +52,8 @@ ui <- navbarPage(
   )
 
 server <- function(input, output) {
-  submit_reactive <- eventReactive ( input$submit, {
-    guides <- get_variables(geneID = input$geneID)
+  submit_reactive <- eventReactive(input$submit, {
+    guides <- get_cached_variables(pg_con, input$geneID)
   })
   
   output$output_text <- renderText({
@@ -297,4 +319,16 @@ server <- function(input, output) {
   
 }
 
+
+
+# Close the PostgreSQL connection when the application stops
+shiny::onStop(function() {
+  if (DBI::dbIsValid(pg_con)) {
+    DBI::dbDisconnect(pg_con)
+    message("PostgreSQL connection closed.")
+  }
+}, session = NULL)
+
 shinyApp(ui = ui, server = server)
+
+
