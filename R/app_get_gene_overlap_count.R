@@ -13,11 +13,13 @@
 
 # Reading in Necessary Libraries ------------------------------------------
 library(Rbowtie)
-source("~/GitHub/Advanced-Bioinformatics/R/app_get_region_type.R")
+source("R/app_get_region_type.R")
 
 # Reading in Datasets -----------------------------------------------------
-bowtie_index <- "~/GitHub/Advanced-Bioinformatics/hg19_index/hg19"
-alignment_file <- "~/GitHub/Advanced-Bioinformatics/data/processed/new_guides_hg19.tsv"
+# Path to the hg19 Bowtie index
+bowtie_index <- "hg19_index/hg19"
+# Path for Bowtie alignment results
+alignment_file <- "data/processed/new_guides_hg19.tsv"
 
 # Computing gene overlap count --------------------------------------------
 get_gene_overlap_count <- function(geneID) {

@@ -14,12 +14,12 @@
 
 # Reading in Necessary Libraries ------------------------------------------
 
-source("~/GitHub/Advanced-Bioinformatics/R/app_get_guide_table.R")
+source("R/app_get_guide_table.R")
 
 # Reading in Datasets -----------------------------------------------------
 
 gtf <- rtracklayer::import(
-  "~/GitHub/Advanced-Bioinformatics/data/reference/hg19.refGene.gtf.gz"
+  "data/reference/hg19.refGene.gtf.gz"
 )
 
 transcripts<- gtf[gtf$type== "transcript"]

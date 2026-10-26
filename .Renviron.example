@@ -1,0 +1,9 @@
+
+# PostgreSQL configuration for the CRISPR Shiny application
+# Copy this file to .Renviron and update the values.
+
+CRISPR_DB_HOST=localhost
+CRISPR_DB_PORT=5432
+CRISPR_DB_NAME=crispr_cache
+CRISPR_DB_USER=postgres
+CRISPR_DB_PASSWORD=CHANGE_ME
