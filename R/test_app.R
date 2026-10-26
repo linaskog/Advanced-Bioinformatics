@@ -8,20 +8,44 @@
 library(shiny)
 library(bslib)
 library(xgboost)
-
+library(ggplot2)
 # takes gene ID as input, returns variables
-source("~/GitHub/Advanced-Bioinformatics/R/app_get_variables.R")
-source("~/GitHub/Advanced-Bioinformatics/R/app_input_panel.R")
-source("~/GitHub/Advanced-Bioinformatics/R/app_quality_control_panel.R")
-source("~/GitHub/Advanced-Bioinformatics/R/app_score_panel.R")
+# Load application functions and panels
+source("R/app_get_variables.R")
+source("R/app_input_panel.R")
+source("R/app_quality_control_panel.R")
+source("R/app_score_panel.R")
+source("R/app_postgres_cache.R")
+# Connect to PostgreSQL using local environment variables
+db_password <- Sys.getenv("CRISPR_DB_PASSWORD")
 
+if (!nzchar(db_password)) {
+  stop("PostgreSQL password is missing. Check .Renviron and restart R.")
+}
+
+pg_con <- DBI::dbConnect(
+  RPostgres::Postgres(),
+  host = Sys.getenv("CRISPR_DB_HOST"),
+  port = as.integer(Sys.getenv("CRISPR_DB_PORT")),
+  dbname = Sys.getenv("CRISPR_DB_NAME"),
+  user = Sys.getenv("CRISPR_DB_USER"),
+  password = db_password
+)
+
+# Close the PostgreSQL connection when the Shiny application stops
+shiny::onStop(function() {
+  if (DBI::dbIsValid(pg_con)) {
+    DBI::dbDisconnect(pg_con)
+  }
+}, session = NULL)
 # Reading in Models -------------------------------------------------------
+xgb_model <- xgboost::xgb.load(
+  "models/xgb_model.ubj"
+)
 
-xgb_model <- xgb.load(
-  "~/GitHub/Advanced-Bioinformatics/models/xgb_model.ubj")
 linear_model <- readRDS(
-  "~/GitHub/Advanced-Bioinformatics/models/linear_model.rds")
-
+  "models/linear_model.rds"
+)
 # Creating a User Interface -----------------------------------------------
 
 # Creating a User Interface -----------------------------------------------
@@ -38,8 +62,8 @@ ui <- navbarPage(
 
 
 server <- function(input, output) {
-  submit_reactive <- eventReactive ( input$submit, {
-    guides <- get_variables(geneID = input$geneID)
+  submit_reactive <- eventReactive(input$submit, {
+    guides <- get_cached_variables(pg_con, input$geneID)
   })
 
   output$output_text <- renderText({

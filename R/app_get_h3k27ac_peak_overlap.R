@@ -17,7 +17,8 @@ h3k27ac_peaks <- rtracklayer::import(
   "~/Advanced-Bioinformatics/GSM4040945_BC3.merge.peak.bed.gz",
   format = "BED"
 )
-source("~/GitHub/Advanced-Bioinformatics/R/app_get_gene_overlap_count.R")
+source("R/app_get_gene_overlap_count.R")
+
 
 # H3K27ac -----------------------------------------------------------------
 
