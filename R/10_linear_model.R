@@ -42,35 +42,34 @@ saveRDS(test_index,
 
 # Function for Summarizing Results ----------------------------------------
 
-get_summary <- function(model1, model2, name1, name2) {
+get_summary <- function(models, names) {
   
-  y <- variables[, "centered_LFC"]
+  train_observations <- variables[train_index, "centered_LFC"]
+  test_observations <- variables[test_index, "centered_LFC"]
   
-  train_observations <- y[train_index]
-  test_observations <- y[test_index]
+  df <- data.frame(Model = names)
   
-  model1_train_pred <- predict(model1, variables[train_index, ])
-  model1_test_pred <- predict(model1, variables[test_index, ])
-  model2_train_pred <- predict(model2, variables[train_index, ])
-  model2_test_pred <- predict(model2, variables[test_index, ])
+  for (i in 1:length(names)) {
+    
+    train_pred <- predict(models[[i]], variables[train_index,])
+    test_pred <- predict(models[[i]], variables[test_index, ])
+    
+    df$R2_train[i] <- basicstats::R2(train_observations, train_pred)
+    df$R2_test[i] <- basicstats::R2(test_observations, test_pred)
+    df$RMSE_train[i] <- basicstats::RMSE(train_observations, train_pred)
+    df$RMSE_test[i] <- basicstats::RMSE(test_observations, test_pred)
+    df$MAE_train[i] <- basicstats::MAE(train_observations, train_pred)
+    df$MAE_test[i] <- basicstats::MAE(test_observations, test_pred)
+    df$Spearman_train[i] <- basicstats::correlation(train_observations, 
+                                                    train_pred,
+                                                    "spearman")
+    df$Spearman_test[i] <- basicstats::correlation(test_observations,
+                                                   test_pred,
+                                                   "spearman")
+  }
   
-  return(data.frame( "model" = c(name1, name2),
-                     "trainRMSE" = c(RMSE(train_observations, model1_train_pred),
-                                     RMSE(train_observations, model2_train_pred)),
-                     "testRMSE" = c(RMSE(test_observations, model1_test_pred),
-                                    RMSE(test_observations, model2_test_pred)),
-                     "trainMAE" = c(MAE(train_observations, model1_train_pred),
-                                    MAE(train_observations, model2_train_pred)),
-                     "testMAE" = c(MAE(test_observations, model1_test_pred),
-                                   MAE(test_observations, model2_test_pred)),
-                     "trainR2" = c(R2(train_observations, model1_train_pred),
-                                   R2(train_observations, model2_train_pred)),
-                     "testR2" = c(R2(test_observations, model1_test_pred),
-                                  R2(test_observations, model2_test_pred))
-  )
-  )
-  
-}
+  return( df )
+  }
 
 
 # Preparing Model Variables -----------------------------------------------
@@ -78,6 +77,14 @@ get_summary <- function(model1, model2, name1, name2) {
 metadata <- c("UID", "Gene", "Guide", "LFC")
 
 predictors <- setdiff(names(variables), c(metadata, "centered_LFC"))
+
+
+# Creating Baseline Model for Comparison ----------------------------------
+
+baseline <- lm(centered_LFC ~ GC,
+               data = variables[train_index, ])
+
+summary(baseline)
 
 # Training Linear Model ---------------------------------------------------
 
@@ -125,11 +132,60 @@ summary(lm_interaction_terms)
 # Multiple R-squared:  0.05838,	Adjusted R-squared:  0.053 
 # F-statistic: 10.85 on 236 and 41288 DF,  p-value: < 2.2e-16
 
+# Adding Additional Interaction Terms -------------------------------------
+
+triple_adj_terms <- paste0(
+  "(pos", 1:18, "_A + pos", 1:18, "_C + pos", 1:18, "_G + pos", 1:18, "_T) * ",
+  "(pos", 2:19, "_A + pos", 2:19, "_C + pos", 2:19, "_G + pos", 2:19, "_T) * ",
+  "(pos", 3:20, "_A + pos", 3:20, "_C + pos", 3:20, "_G + pos", 3:20, "_T)"
+  )
+
+# Preparing formula for modelling additional interactions
+add_inter_lm_formula <- as.formula(paste(
+  "centered_LFC ~ ",
+  paste(predictors, collapse = " + "),
+  "+",
+  paste(adjacent_terms, collapse = " + "),
+  "+",
+  paste(triple_adj_terms, collapse = " + ")
+  ))
+
+# Training new model with additional cross-terms
+add_inter_lm <- lm(add_inter_lm_formula,
+                   data = variables[train_index,])
+
+summary(add_inter_lm)
+
+# Residual standard error: 0.3222 on 40640 degrees of freedom
+# Multiple R-squared:  0.08071,	Adjusted R-squared:  0.06071 
+# F-statistic: 4.036 on 884 and 40640 DF,  p-value: < 2.2e-16
 
 # Comparing models --------------------------------------------------------
 
-comparison <- get_summary(linear_model, lm_interaction_terms, 
-                          "linear_model", "linear_model_w_cross_terms")
+comparison <- get_summary(list(baseline,
+                               linear_model, 
+                            lm_interaction_terms,
+                            add_inter_lm),
+                          c("Baseline (only GC)",
+                            "Linear Model (No cross terms",
+                            "LM Dinucleotide Cross-Terms",
+                            "LM Trinucleotide Cross-Terms")
+                          )
+
+comparison
+
+# Model                         R2_train    R2_test     RMSE_train RMSE_test 
+# Baseline (only GC)            0.001837295 0.001798662  0.3321744 0.3344780 
+# Linear Model (No cross terms  0.04302252  0.04121038  0.3252493  0.3278084 
+# LM Dinucleotide Cross-Terms   0.05837949  0.04644043  0.3226290  0.3269131 
+# LM Trinucleotide Cross-Terms  0.08070696  0.03678290  0.3187810  0.3285644 
+
+# Model                         MAE_train  MAE_test Spearman_train Spearman_test
+# Baseline (only GC)            0.2411301 0.2417564 0.04075234     0.04586712
+# Linear Model (No cross terms  0.2375401 0.2383944 0.2016518      0.2012359
+# LM Dinucleotide Cross-Terms   0.2360659 0.2380683 0.2325099      0.2163131
+# LM Trinucleotide Cross-Terms  0.2342924 0.2402606 0.2666679      0.2043376
+
 
 # Saving Linear Model -----------------------------------------------------
 

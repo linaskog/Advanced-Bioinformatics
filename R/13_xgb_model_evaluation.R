@@ -7,7 +7,7 @@
 # - sources data from "R/12_xgb_model_optimization.R"
 
 # Output:
-# - final xgb_model as ubj file
+# - final xgb_model as ubj file stored in "models/xgb_model.ubj"
 
 # Reading in Libraries ----------------------------------------------------
 
