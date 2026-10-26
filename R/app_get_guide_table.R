@@ -13,7 +13,7 @@
 
 # Reading in Necessary Libraries ------------------------------------------
 
-source("~/GitHub/Advanced-Bioinformatics/R/app_finding_sgRNAs.R")
+source("R/app_finding_sgRNAs.R")
 
 # Extracting sgRNAs and Data ----------------------------------------------
 

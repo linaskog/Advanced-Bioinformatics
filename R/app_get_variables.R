@@ -19,7 +19,7 @@
 
 # Sourcing extracted data -------------------------------------------------
 
-source("~/GitHub/Advanced-Bioinformatics/R/app_get_h3k27ac_peak_overlap.R")
+source("R/app_get_h3k27ac_peak_overlap.R")
 
 # Preparing Independent Variables -----------------------------------------
 get_variables <- function(geneID) {
