@@ -75,7 +75,7 @@ The script for the final model evaluation can be found in `R/13_xgb_model_evalua
 
 ### SHAP 
 
-SHaplet Additive exPlanation was used to investigate how sequence features contributed to the predictions of the final model. SHAP analysis was performed on the final model after hyperparameter optimization.
+SHaplet Additive exPlanation was used to investigate how sequence features contributed to the predictions of the final model. SHAP analysis was performed on the final model after hyperparameter optimization. A SHAP-plot was generated and saved in `results/models/shap_plot_xgb_model.pdf` and the script for producing the SHAP-plot can be found in `R/13_xgb_model_evaluation.R`
 
 ## Final Model Exploration
 
@@ -117,4 +117,4 @@ The predicted scores for the training and testing data set were compared to the 
 | XGBoostTrain | 0.582 | 0.579 | 0.573 | 0.591 | 0.586 | 0.576 |
 | XGBoostTest | 0.578 | 0.576 | 0.566 | 0.589 | 0.580 | 0.571 |
 
-## 
+The classification metrics computed for the either model are quite similar, however quite modest as either model predictions have ~58% accuracy. The metrics computed for training and testing data are similar for both models and all metrics. 
