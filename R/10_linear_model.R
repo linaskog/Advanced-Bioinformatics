@@ -39,7 +39,6 @@ saveRDS(train_index,
 saveRDS(test_index, 
         "~/GitHub/Advanced-Bioinformatics/data/processed/test_index.rds")
 
-
 # Function for Summarizing Results ----------------------------------------
 
 get_summary <- function(models, names) {
@@ -77,14 +76,6 @@ get_summary <- function(models, names) {
 metadata <- c("UID", "Gene", "Guide", "LFC")
 
 predictors <- setdiff(names(variables), c(metadata, "centered_LFC"))
-
-
-# Creating Baseline Model for Comparison ----------------------------------
-
-baseline <- lm(centered_LFC ~ GC,
-               data = variables[train_index, ])
-
-summary(baseline)
 
 # Training Linear Model ---------------------------------------------------
 
@@ -162,11 +153,10 @@ summary(add_inter_lm)
 
 # Comparing models --------------------------------------------------------
 
-comparison <- get_summary(list(baseline,
-                               linear_model, 
-                            lm_interaction_terms,
-                            add_inter_lm),
-                          c("Baseline (only GC)",
+comparison <- get_summary(list(linear_model, 
+                               lm_interaction_terms,
+                               add_inter_lm),
+                          c(
                             "Linear Model (No cross terms",
                             "LM Dinucleotide Cross-Terms",
                             "LM Trinucleotide Cross-Terms")
@@ -175,17 +165,14 @@ comparison <- get_summary(list(baseline,
 comparison
 
 # Model                         R2_train    R2_test     RMSE_train RMSE_test 
-# Baseline (only GC)            0.001837295 0.001798662  0.3321744 0.3344780 
 # Linear Model (No cross terms  0.04302252  0.04121038  0.3252493  0.3278084 
 # LM Dinucleotide Cross-Terms   0.05837949  0.04644043  0.3226290  0.3269131 
 # LM Trinucleotide Cross-Terms  0.08070696  0.03678290  0.3187810  0.3285644 
 
 # Model                         MAE_train  MAE_test Spearman_train Spearman_test
-# Baseline (only GC)            0.2411301 0.2417564 0.04075234     0.04586712
 # Linear Model (No cross terms  0.2375401 0.2383944 0.2016518      0.2012359
 # LM Dinucleotide Cross-Terms   0.2360659 0.2380683 0.2325099      0.2163131
 # LM Trinucleotide Cross-Terms  0.2342924 0.2402606 0.2666679      0.2043376
-
 
 # Saving Linear Model -----------------------------------------------------
 

@@ -1,19 +1,17 @@
-# 13.3_xgb_model_classification.R
+# 13.2_xgb_model_classification.R
 
 # Purpose:
 # Investigating sgRNA classifications made by xgb_model
 
 # Input:
-# Sources R/13.2_xgb_model_genes.R
+# Sources R/13.1_xgb_model_genes.R
 
 
 # Import variables and models ---------------------------------------------
 
-source("R/13.2_xgb_model_genes.R")
+source("R/13.1_xgb_model_genes.R")
 
 # Investigating Training sgRNAs -------------------------------------------
-
-colnames(training)
 
 # Comparing observed and predicted scores (positive or negative)
 training$same_sign <- sign(training$centered_LFC) == sign(training$predictions)
@@ -42,8 +40,6 @@ print(paste0("Fraction correct classifications: ",
 
 
 # Investigating Testing sgRNAs -------------------------------------------
-
-colnames(testing)
 
 # Comparing observed and predicted scores (positive or negative)
 testing$same_sign <- sign(testing$centered_LFC) == sign(testing$predictions)

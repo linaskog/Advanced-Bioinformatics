@@ -1,15 +1,15 @@
-# _xgb_model_confusion_matrix.R
+# 13.3_xgb_model_class_cont.R
 
 # Purpose:
 # Investigating sgRNA classifications made by xgb_model
 
 # Input:
+# - sources "R/13.2_xgb_model_classification"
 
 # Import variables and models ---------------------------------------------
 
-source("R/13.3_xgb_model_classification.R")
-source("R/classification_metrics.R")
-
+source("R/13.2_xgb_model_classification.R")
+library(basicstats)
 
 # Investigating Training sgRNAs -------------------------------------------
 
@@ -169,11 +169,11 @@ conf_matrix_te_sig
 
 get_results_row <- function(conf_matrix, name) {
   df <- data.frame( "Data" = name,
-                    "Accuracy" = accuracy(conf_matrix),
+                    "Accuracy" = basicstats::accuracy(conf_matrix),
                     "Precision" = precision(conf_matrix),
                     "Sensitivity" = sensitivity(conf_matrix),
                     "Specificity" = specificity(conf_matrix),
-                    "NPV" = negative_predictive_value(conf_matrix))
+                    "NPV" = NPV(conf_matrix))
   return(df)
 }
 

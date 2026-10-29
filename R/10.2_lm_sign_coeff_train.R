@@ -1,12 +1,10 @@
 # 10.2_lm_sign_coeff_train.R
 
 # Purpose:
-# Explore Coefficients For the Linear Models from R/10_linear_model.R
+# Attempting to retrain linear models only on significant coefficients
 
 # Input:
 # Sources "R/10_linear_model.R"
-
-# Output:
 
 # Loading Data and Libraries ----------------------------------------------
 
@@ -25,20 +23,46 @@ top_10_coeffs <- data.frame(
   
 )
 
+top_10_coeffs
+# LM        LM + pairs        LM + pairs + triplets
+#	pos20_G	  pos19_G	          pos20_G
+#	pos18_C	  pos20_G	          pos19_G
+#	pos19_G	  pos19_G:pos20_C	  pos19_G:pos20_C
+#	pos17_G	  pos19_C	          (Intercept)
+#	pos19_C	  pos18_C	          H3K27ac_peak_overlap
+#	pos17_C	  (Intercept)	      pos18_C:pos20_G
+#	pos17_A	  pos17_G	          pos18_C
+#	pos19_A	  pos17_C	          pos19_C:pos20_G
+#	pos20_C	  pos18_G	          pos1_C:pos2_C
+#	pos10_A	  pos18_A	          pos19_C
+
 bottom_10_coeffs <- data.frame(
   LM = rownames(LM_coeffs[order(-LM_coeffs[,"Pr(>|t|)"]), ])[1:10],
   LM_di = rownames(LM_di_coeffs[order(-LM_di_coeffs[,"Pr(>|t|)"]), ])[1:10],
   LM_tri = rownames(LM_tri_coeffs[order(-LM_tri_coeffs[,"Pr(>|t|)"]), ])[1:10]
   
 )
+bottom_10_coeffs
+#                   LM              LM_di                  LM_tri
+#              pos1_A      pos6_C:pos7_A          pos9_A:pos10_A
+#              pos7_C      pos1_C:pos2_C           pos7_A:pos8_G
+#  gene_overlap_count      pos5_G:pos6_C         pos11_G:pos13_C
+#              pos8_C gene_overlap_count pos18_C:pos19_G:pos20_A
+#             pos16_G    pos10_G:pos11_A           pos4_G:pos6_C
+#              pos3_A      pos5_G:pos6_G           pos5_C:pos7_C
+#              pos2_C      pos3_A:pos4_C    pos1_G:pos2_G:pos3_A
+#              pos9_C    pos16_C:pos17_G           pos3_A:pos4_C
+#              pos6_A    pos16_A:pos17_A pos11_G:pos12_C:pos13_A
+#        region_type      pos4_C:pos5_A   pos8_C:pos9_G:pos10_G
 
 # Finding Significant Coefficients ----------------------------------------
 
-cut_off <- 0.1
+sig_level <- 0.1
 
 # Finding significant coefficinets for linear model
 nrow(LM_coeffs)
 # 66 variables originally
+
 sig_LM_coeffs <- rownames(LM_coeffs[LM_coeffs[, 'Pr(>|t|)'] < sig_level, ])
 sig_LM_coeffs <- setdiff(sig_LM_coeffs, "(Intercept)")
 length(sig_LM_coeffs) 

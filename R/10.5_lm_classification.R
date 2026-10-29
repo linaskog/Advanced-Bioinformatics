@@ -1,7 +1,7 @@
-# 10.5_lm_accuracy.R
+# 10.5_lm_classication.R
 
 # Purpose:
-# Investigating sgRNA classifications made by xgb_model
+# Investigating sgRNA classifications made by linear model
 
 # Input:
 # - variables
@@ -32,7 +32,7 @@ training <- variables[train_index,
 training$predictions <- predict(linear_model, 
                                 variables[train_index, ])
 
-# Comparing observed and predicted scores (positive or negative)
+# Comparing observed and predicted scores, correct if same sign
 training$same_sign <- sign(training$centered_LFC) == sign(training$predictions)
 
 correct_train_classification <- nrow(training[training$same_sign == TRUE,])
