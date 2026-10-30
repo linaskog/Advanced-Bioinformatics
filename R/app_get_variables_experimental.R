@@ -1,0 +1,101 @@
+# app_get_variables.R
+
+# Purpose:
+# Prepare variable data for modelling guides for a valid gene ID
+
+# Input:
+# - sources app_get_h3k27ac_peak_overlap.R
+
+# Output:
+# - data frame with;
+# - metadata; UID, Guide
+# - one-hot encoded guide nucleotide information
+# - GC-content on 0-1 scale
+# - Strand data numeric based on factors with levels -, +
+# - Chromosome data numeric based on factors with levels Chr1-Chr22, ChrX, ChrY
+# - Region type as numeric based on factors with levels exon, intergenic, intron
+# - Gene overlap count as numeric, no. of overlapped genes
+# - H3K27ac peak overlap as numeric representation of True (1) and False (0)
+library(stringr)
+# Sourcing extracted data -------------------------------------------------
+
+#source("R/app_get_h3k27ac_peak_overlap.R")
+source("R/app_get_h3k27ac_peak_overlap_experimental.R")
+# Preparing Independent Variables -----------------------------------------
+get_variables <- function(geneID) {
+  guides <- get_h3k27ac_peak_overlap(geneID)
+
+  variables <- data.frame("UID" = guides$ID,
+                          "Guide" = guides$guide)
+
+  # Extracting Position-Wise Nucleotide Information
+  sequence_matrix <-stringr::str_split_fixed(
+    guides$guide,
+    pattern = "",
+    n = 20)
+
+  X <- do.call(
+    cbind,
+    lapply(1:20, function(i) {
+      model.matrix(~ sequence_matrix[, i] - 1)
+    })
+  )
+
+  colnames(X) <- paste0(
+    rep(paste0("pos", 1:20), each = 4),
+    "_",
+    rep(c("A", "C", "G", "T"), 20)
+  )
+
+  variables <- cbind(variables, X)
+
+  # Adding Guide GC-Content to Variables
+  variables <- cbind(variables,
+                     GC = (str_count(guides$guide, "G") +
+                             str_count(guides$guide, "C")) /
+                       str_length(guides$guide)
+  )
+
+  # Adding Strand Data to Variables
+  variables <- cbind(variables, strand = as.numeric(factor(guides$strand,
+                                                           levels = c("-", "+"))))
+
+  # Adding Chromosome Information to Variables
+  variables <- cbind(variables,
+                     chromosome = as.numeric(
+                       factor(
+                         guides$chromosome,
+                         levels = c( "chr1", "chr2", "chr3", "chr4", "chr5",
+                                     "chr6", "chr7", "chr8", "chr9", "chr10",
+                                     "chr11", "chr12", "chr13", "chr14", "chr15",
+                                     "chr16", "chr17", "chr18", "chr19", "chr20",
+                                     "chr21", "chr22", "chrX", "chrY" )
+                       )
+                     )
+  )
+
+  # Adding region Type (levels "exon", "intergenic", "intron") to Variables
+  variables <- cbind(variables,
+                     region_type = as.numeric(
+                       factor(
+                         guides$region_type,
+                         levels = c("exon", "intergenic", "intron")
+                       )
+                     )
+  )
+
+  # Adding Gene Overlap Count
+  variables <- cbind(variables,
+                     gene_overlap_count = guides$gene_overlap_count)
+
+  # Adding H3K27ac Peak Overlap (True = 1, False = 0)
+  variables <- cbind(variables,
+                     H3K27ac_peak_overlap = as.numeric(
+                       guides$H3K27ac_peak_overlap)
+  )
+
+  attr(variables,"gene_symbol") <- attr(guides, "gene_symbol")
+  attr(variables, "ensembl_id") <- attr(guides, "ensembl_id")
+
+  return( variables )
+}
