@@ -75,7 +75,7 @@ The script for the final model evaluation can be found in `R/13_xgb_model_evalua
 
 ### SHAP 
 
-SHaplet Additive exPlanation was used to investigate how sequence features contributed to the predictions of the final model. SHAP analysis was performed on the final model after hyperparameter optimization. A SHAP-plot was generated and saved in `results/models/shap_plot_xgb_model.pdf` and the script for producing the SHAP-plot can be found in `R/13_xgb_model_evaluation.R`
+SHapley Additive exPlanation was used to investigate how sequence features contributed to the predictions of the final model. SHAP analysis was performed on the final model after hyperparameter optimization. A SHAP-plot was generated and saved in `results/models/shap_plot_xgb_model.pdf` and the script for producing the SHAP-plot can be found in `R/13_xgb_model_evaluation.R`
 
 ## Final Model Exploration
 
