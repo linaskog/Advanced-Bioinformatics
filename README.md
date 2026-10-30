@@ -54,14 +54,16 @@ The Shiny application uses PostgreSQL to reuse genomic features calculated for a
 
 The PostgreSQL cache was tested locally, including successful retrieval of previously computed GATA3 features through Shiny. Cache misses trigger the original feature-calculation pipeline; this route is still under validation, particularly for guides with extensive genomic multi-mapping. Cached features use the version label `prototype_v1_unvalidated`.
 
-## Machine-learning models and evaluation
+## Statistical and Machine Learning Models and Evaluation
 
-> **Modeling ** 
+We developed two predictive models, **linear regression and XGBoost**, to estimate sgRNA performance using CRISPR screening data from BC-3 cells. Both models were trained to predict gene-centered log2 fold change using sgRNA sequence information, GC content, and genomic features such as chromosome, strand, region type, gene overlaps, and H3K27ac peak overlaps.
 
+The models were evaluated using a separate test dataset. The best-performing linear regression model achieved a test R² of approximately **0.046**, while XGBoost achieved **0.050**. These results show that both models have limited predictive performance, although XGBoost performed slightly better.
 
+For more information about model development, training, hyperparameter optimization, evaluation, and SHAP analysis, see the [detailed modelling documentation](models.md).
 
+The model scripts are available in `R/`, the saved models in `models/`, and the evaluation figures in `results/models/`. The repository also contains a small `R/basicstats/` package for model evaluation metrics. 
 
-Model scripts are in `R/`, saved models in `models/`, and figures in `results/models/`. The repository also includes a small `R/basicstats/` package for evaluation metrics.
 
 ## Shiny application
 
