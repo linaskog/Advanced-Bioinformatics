@@ -61,7 +61,7 @@ XGBoost (Extreme Gradient Boosting) was used to model gene-centered Log2 Fold Ch
 
 ### Hyperparameter Selection
 
-Hyperparameters eta, gamma, max_depth, subsample, colsample_bytree, and min_child_weight were selected using 5-fold cross-validation on the training data. The number of boosting rounds was also determined during cross-validation using early stopping. For each parameter configuration up to 1,000 boosting rounds were evaluated, stopping training when RMSE failed to improve for 30 consecutive rounds. The parameters were optimized sequentially in the previously stated order, retaining the selected parameter value from the previous optimization. The cross-validation Root Mean Squared Error (CV RMSE) was used to select parameter values, where a lower value indicates a lower prediction error. The optimization procedure can be found in `R/12_xgb_model_optimization.R`
+Values of hyperparameters eta, gamma, max_depth, subsample, colsample_bytree, and min_child_weight were selected using 5-fold cross-validation on the training data. A small set of parameter values was investigated for each parameter and value producing the lowest cross-validation RMSE (CV-RMSE) was selected. The number of boosting rounds was also determined during cross-validation using early stopping. For each parameter configuration up to 1,000 boosting rounds were evaluated, stopping training when RMSE failed to improve for 30 consecutive rounds. The parameters were selected sequentially in the previously stated order, retaining the selected parameter value from the previous optimization. The optimization procedure can be found in `R/12_xgb_model_optimization.R`
 
 ### Final Model Evaluation 
 
