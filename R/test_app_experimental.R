@@ -18,6 +18,7 @@ source("R/app_quality_control_panel.R")
 #source("R/app_score_panel.R")
 source("R/app_score_panel_experimental.R")
 #source("R/app_postgres_cache.R")
+source("R/app_postgres_cache_experimental.R")
 # Connect to PostgreSQL using local environment variables
 db_password <- Sys.getenv("CRISPR_DB_PASSWORD")
 
@@ -25,23 +26,25 @@ if (!nzchar(db_password)) {
   stop("PostgreSQL password is missing. Check .Renviron and restart R.")
 }
 
-#pg_con <- DBI::dbConnect(
- # RPostgres::Postgres(),
-  #host = Sys.getenv("CRISPR_DB_HOST"),
-  #port = as.integer(Sys.getenv("CRISPR_DB_PORT")),
-  #dbname = Sys.getenv("CRISPR_DB_NAME"),
-  #user = Sys.getenv("CRISPR_DB_USER"),
-  #password = db_password
-#)
+pg_con <- DBI::dbConnect(
+  RPostgres::Postgres(),
+  host = Sys.getenv("CRISPR_DB_HOST"),
+  port = as.integer(Sys.getenv("CRISPR_DB_PORT")),
+  dbname = Sys.getenv("CRISPR_DB_NAME"),
+  user = Sys.getenv("CRISPR_DB_USER"),
+  password = db_password
+)
 
-# PostgreSQL caching disabled for experimental testing.
+
 # Calculate fresh sgRNA features using corrected functions.
 # Close the PostgreSQL connection when the Shiny application stops
-#shiny::onStop(function() {
- # if (DBI::dbIsValid(pg_con)) {
-  #  DBI::dbDisconnect(pg_con)
-  #}
-#}, session = NULL)
+
+shiny::onStop(function() {
+  if (DBI::dbIsValid(pg_con)) {
+    DBI::dbDisconnect(pg_con)
+  }
+})
+
 # Reading in Models -------------------------------------------------------
 xgb_model <- xgboost::xgb.load(
   "models/xgb_model.ubj"
@@ -67,8 +70,7 @@ ui <- navbarPage(
 
 server <- function(input, output) {
   submit_reactive <- eventReactive(input$submit, {
-    #guides <- get_cached_variables(pg_con, input$geneID)
-    guides <- get_variables(input$geneID)
+    guides <- get_cached_variables(pg_con, input$geneID)
   })
 
   output$output_text <- renderText({
