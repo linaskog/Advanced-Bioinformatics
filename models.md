@@ -61,7 +61,7 @@ XGBoost (Extreme Gradient Boosting) was used to model gene-centered Log2 Fold Ch
 
 ### Hyperparameter Selection
 
-Hyperparameters eta, gamma, max_depth, subsample, colsample_bytree, and min_child_weight were selected using 5-fold cross-validation on the training data. The number of boosting rounds was also determined during cross-validation using early stopping. For each parameter configuration up to 1,000 boosting rounds were evaluated, stopping training when RMSE failed to improve for 30 consecutive rounds. The parameters were optimized sequentially in the previously stated order, retaining the selected parameter value from the previous optimization. The cross-validation Root Mean Squared Error (CV RMSE) was used to select parameter values, where a lower value indicates a lower prediction error. The optimization procedure can be found in `R/12_xgb_model_optimization.R`
+Values of hyperparameters eta, gamma, max_depth, subsample, colsample_bytree, and min_child_weight were selected using 5-fold cross-validation on the training data. A small set of parameter values was investigated for each parameter and value producing the lowest cross-validation RMSE (CV-RMSE) was selected. The number of boosting rounds was also determined during cross-validation using early stopping. For each parameter configuration up to 1,000 boosting rounds were evaluated, stopping training when RMSE failed to improve for 30 consecutive rounds. The parameters were selected sequentially in the previously stated order, retaining the selected parameter value from the previous optimization. The optimization procedure can be found in `R/12_xgb_model_optimization.R`
 
 ### Final Model Evaluation 
 
@@ -75,7 +75,7 @@ The script for the final model evaluation can be found in `R/13_xgb_model_evalua
 
 ### SHAP 
 
-SHaplet Additive exPlanation was used to investigate how sequence features contributed to the predictions of the final model. SHAP analysis was performed on the final model after hyperparameter optimization.
+SHapley Additive exPlanation was used to investigate how sequence features contributed to the predictions of the final model. SHAP analysis was performed on the final model after hyperparameter optimization. A SHAP-plot was generated and saved in `results/models/shap_plot_xgb_model.pdf` and the script for producing the SHAP-plot can be found in `R/13_xgb_model_evaluation.R`
 
 ## Final Model Exploration
 
@@ -117,4 +117,4 @@ The predicted scores for the training and testing data set were compared to the 
 | XGBoostTrain | 0.582 | 0.579 | 0.573 | 0.591 | 0.586 | 0.576 |
 | XGBoostTest | 0.578 | 0.576 | 0.566 | 0.589 | 0.580 | 0.571 |
 
-## 
+The classification metrics computed for the either model are quite similar, however quite modest as either model predictions have ~58% accuracy. The metrics computed for training and testing data are similar for both models and all metrics. 
