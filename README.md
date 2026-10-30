@@ -119,7 +119,8 @@ Launching `test_app.R` directly with RStudio’s **Run App** button may change t
 
 ## Current limitations
 
-Genome-based feature generation on a cache miss still needs validation. In particular, highly multi-mapping guides can produce very large Bowtie outputs, and guide-to-gene overlap counting and genomic coordinate conventions are being reviewed in a separate experimental script. These experimental fixes are **not** part of the integrated application. Existing cached features should not be interpreted as fully validated. PostgreSQL is local to each installation, and required genomic assets must be provided separately. The modeling contributor should add the final evaluation metrics before submission.
+Genome-based feature generation on a cache miss still needs validation. In particular, highly multi-mapping guides can produce very large Bowtie outputs, and guide-to-gene overlap counting and genomic coordinate conventions are being reviewed in a separate experimental script. These experimental fixes are **not** part of the integrated application. Existing cached features should not be interpreted as fully validated. PostgreSQL is local to each installation, and required genomic assets must be provided separately. 
+Furthermore, the final models evaluated on a test subset of our generated data only achieved R² values of ~0.05, indicating that they only explain a small proportion of the variation in guide efficiency. Further model improvement is needed to ensure predictions are sufficiently reliable for practical use.
 
 ## Reference
 
